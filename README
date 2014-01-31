@@ -1,0 +1,4 @@
+naX
+
+nax (not another XeLL) is a minimalistic loader that includes a driver for the flash controller and filesystem.
+It chainloads a little linux base-system (petitboot) from NAND.

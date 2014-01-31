@@ -1,0 +1,19 @@
+#!/bin/bash
+
+GITREV=$(git describe --tags $(git rev-list --tags --max-count=1))
+
+make clean
+make
+
+mkdir release
+cp *.bin release/
+cp CHANGELOG release/
+cp README release/
+
+cd release
+tar czvf naX-${GITREV}.tar.gz *
+mv *.tar.gz ..
+cd ..
+rm -rf release
+
+make clean
