@@ -1,6 +1,26 @@
 #ifndef _LINUX_TYPES_H
 #define _LINUX_TYPES_H
 
+#ifndef true
+#define true	1
+#endif
+
+#ifndef false
+#define false	0
+#endif
+
+#ifndef NULL
+#define NULL 0
+#endif
+
+#ifndef TRUE
+#define TRUE 1
+#endif
+
+#ifndef FALSE
+#define FALSE 0
+#endif
+
 typedef unsigned long size_t;
 typedef size_t __kernel_size_t;
 
@@ -47,5 +67,7 @@ typedef		__u32		uint32_t;
 typedef		__u64		uint64_t;
 typedef		__u64		u_int64_t;
 typedef		__s64		int64_t;
+
+typedef		__s8		bool;
 
 #endif /* _LINUX_TYPES_H */

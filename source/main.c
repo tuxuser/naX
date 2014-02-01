@@ -9,6 +9,8 @@
 #include "time.h"
 
 #include "puff/puff.h"
+#include "nand/xenon_sfc.h"
+#include "nand/xenon_nandfs.h"
 
 #define GZIP_HEADER_SIZE 10
 #define GZIP_FOOTER_SIZE 8
@@ -382,10 +384,13 @@ int setjmp(jmp_buf jb){
 	return 0;
 }
 
-static unsigned char * stage2 = (unsigned char *)_start+XELL_STAGE1_SIZE;
-static unsigned char stage2_elf[1024*1024];
 
 int main() {
+
+	int ret, index;
+	unsigned long destsize;
+	unsigned char *petitboot;
+	
 
 	if (!start_from_exploit)
 		printf("\nXeLL - First stage\n");
@@ -395,22 +400,34 @@ int main() {
 		getchar();
 
 	printf(" * Decompressing stage 2...\n");
-
-	unsigned long destsize=sizeof(stage2_elf), srcsize=XELL_STAGE2_SIZE;
-
-	if (stage2[0]!=0x1f || stage2[1]!=0x8b || stage2[2]!=0x08 || stage2[3]!=0x00){
-		printf("[ERROR] bad gzip header\n");
+	
+	ret = xenon_sfc_init_one();
+	if(!ret)
+	{
+		printf("NAND Enumeration failed!\n");
+		goto end;
+	}
+		
+	ret = xenon_nandfs_init();
+	if(!ret)
+	{
 		goto end;
 	}
 
-	int res=puff(stage2_elf,&destsize,&stage2[GZIP_HEADER_SIZE],&srcsize);
-
-	if (res){
-		printf("[ERROR] decompression failed (srcsize=%ld destsize=%ld res=%d)\n",srcsize,destsize,res);
+	index = xenon_nandfs_GetIndexByFileName("petitboot.bin");
+	if(index < 0)
+	{
+		printf("petitboot.bin wasn't found in NAND Filesystem!\n");
 		goto end;
 	}
+	
+	destsize = xenon_nandfs_GetFileSzByIndex(index);
+	
+	petitboot = (unsigned char*)malloc(destsize);	
+	petitboot = xenon_nandfs_ReadFileByIndex(index);
 
-	execute_elf_at(stage2_elf);
+
+	execute_elf_at(petitboot);
 
 end:
 	printf(" * looping...\n");

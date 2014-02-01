@@ -21,7 +21,9 @@ OBJS =	$(SRC_DIR)/startup.o \
 	$(SRC_DIR)/string.o \
 	$(SRC_DIR)/time.o \
 	$(SRC_DIR)/vsprintf.o \
-	$(SRC_DIR)/puff/puff.o
+	$(SRC_DIR)/puff/puff.o \
+	$(SRC_DIR)/nand/xenon_sfc.o \
+	$(SRC_DIR)/nand/xenon_nandfs.o
 
 TARGETS = nax-1f nax-2f nax-gggggg nax-gggggg_cygnos_demon nax-1f_cygnos_demon nax-2f_cygnos_demon
 
