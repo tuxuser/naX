@@ -22,7 +22,6 @@
  * http://www.informit.com/articles/article.aspx?p=1187102&seqNum=1
  */
 
-#include <malloc.h>
 #include "string.h"
 #include "vsprintf.h"
 #include "xenon_sfc.h"
@@ -218,15 +217,13 @@ bool xenon_nandfs_CheckECC(PAGEDATA* pdata)
 	return 1;
 }
 
-unsigned char *xenon_nandfs_ReadFileByIndex(int index)
+int xenon_nandfs_ReadFileByIndex(unsigned char* buf, int index)
 {
 	unsigned int fsFileSize, fsBlock, block_num;
 	unsigned int fsStartBlock = dumpdata.FSStartBlock<<3; // Convert to Small Block
-	unsigned char* tmpdata = (unsigned char *)malloc(0x4000);
-	unsigned char* buf;
+	unsigned char tmpdata[0x4000];
 
 	fsFileSize = xenon_nandfs_GetFileSzByIndex(index);
-	buf = (unsigned char *)malloc(fsFileSize);
 	
 	block_num = 0;
 	while(fsFileSize > 0x4000)
@@ -249,7 +246,7 @@ unsigned char *xenon_nandfs_ReadFileByIndex(int index)
 		memcpy(&buf[block_num*0x4000], tmpdata, fsFileSize);
 	}
 	
-	return buf;
+	return 0;
 }
 
 int xenon_nandfs_GetFileSzByIndex(int index)
@@ -342,8 +339,8 @@ int xenon_nandfs_CreateFsEntryBlockmap(void)
 int xenon_nandfs_ParseLBA(void)
 {
 	int block, spare;
-	unsigned char* userbuf = (unsigned char *)malloc(nand.BlockSz);
-	unsigned char* sparebuf = (unsigned char *)malloc(nand.MetaSz*nand.PagesInBlock);
+	unsigned char userbuf[nand.BlockSz];
+	unsigned char sparebuf[nand.MetaSz*nand.PagesInBlock];
 	int FsStart = dumpdata.FSStartBlock;
 	int FsSize = dumpdata.FSSize;
 	unsigned short lba, lba_cnt=0;
@@ -382,8 +379,6 @@ int xenon_nandfs_ParseLBA(void)
 		}
 	}
 	printf("Read 0x%x LBA entries\n",lba_cnt);
-	free(userbuf);
-	free(sparebuf);
 	return 0;
 }
 
@@ -391,7 +386,7 @@ int xenon_nandfs_SplitFsRootBuf()
 {
 	int block = dumpdata.FSRootBlock;
 	unsigned int i, j, root_off, file_off, ttl_off;
-	unsigned char* data = (unsigned char *)malloc(nand.BlockSz);
+	unsigned char data[nand.BlockSz];
 	
 	if(nand.MMC)
 		xenon_sfc_ReadMapData(data, (block*nand.BlockSz), nand.BlockSz);
@@ -417,7 +412,6 @@ int xenon_nandfs_SplitFsRootBuf()
 	writeToFile("fsrootbuf.bin", dumpdata.FSRootBuf, FSROOT_SIZE);
 	writeToFile("fsrootfilebuf.bin", dumpdata.FSRootFileBuf, FSROOT_SIZE);
 #endif
-	free(data);
 	return 0;
 }
 
@@ -432,7 +426,7 @@ bool xenon_nandfs_init(void)
 
 	if(nand.MMC)
 	{
-		unsigned char* blockbuf = (unsigned char *)malloc(nand.BlockSz * 2);
+		unsigned char blockbuf[nand.BlockSz * 2];
 		mmc_anchor_blk = nand.ConfigBlock - MMC_ANCHOR_BLOCKS;
 		prev_mobi_ver = 0;
 		
@@ -451,7 +445,6 @@ bool xenon_nandfs_init(void)
 		if(prev_mobi_ver == 0)
 		{
 			printf("MMC Anchor block wasn't found!");
-			free(blockbuf);
 			return false;
 		}
 
@@ -480,12 +473,11 @@ bool xenon_nandfs_init(void)
 				dumpdata.Mobile[mobi-MOBILE_BASE].Size = size * nand.BlockSz;
 			}
 		}
-		free(blockbuf);
 	}
 	else
 	{
-		unsigned char* userbuf = (unsigned char *)malloc(nand.BlockSz);
-		unsigned char* sparebuf = (unsigned char *)malloc(nand.MetaSz*nand.PagesInBlock);
+		unsigned char userbuf[nand.BlockSz];
+		unsigned char sparebuf[nand.MetaSz*nand.PagesInBlock];
 		
 		if(nand.isBB) // Set FSroot Identifier, depending on nandtype
 			fsroot_ident = BB_MOBILE_FSROOT;
@@ -560,8 +552,6 @@ bool xenon_nandfs_init(void)
 				printf("%s found at block 0x%x (off: 0x%x), page %d, v %i, size %d (0x%x) bytes\n", mobileName, blk, (blk*nand.BlockSzPhys), j, tmp_ver, size, size);
 			}
 		}
-		free(userbuf);
-		free(sparebuf);
 	}
 	return ret;
 }

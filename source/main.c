@@ -387,9 +387,10 @@ int setjmp(jmp_buf jb){
 
 int main() {
 
-	int ret, index;
-	unsigned long destsize;
-	unsigned char *petitboot;
+	int ret = 0;
+	int index = 0;
+	unsigned long destsize = 0;
+	unsigned char *bootfile = (unsigned char*)"petitboot.bin";
 	
 
 	if (!start_from_exploit)
@@ -405,31 +406,30 @@ int main() {
 	if(!ret)
 	{
 		printf("NAND Enumeration failed!\n");
-		goto end;
+		return 1;
 	}
 		
 	ret = xenon_nandfs_init();
 	if(!ret)
 	{
-		goto end;
+		return 2;
 	}
 
-	index = xenon_nandfs_GetIndexByFileName("petitboot.bin");
+	index = xenon_nandfs_GetIndexByFileName(bootfile);
 	if(index < 0)
 	{
 		printf("petitboot.bin wasn't found in NAND Filesystem!\n");
-		goto end;
+		return 3;
 	}
 	
 	destsize = xenon_nandfs_GetFileSzByIndex(index);
 	
-	petitboot = (unsigned char*)malloc(destsize);	
-	petitboot = xenon_nandfs_ReadFileByIndex(index);
+	unsigned char petitboot[destsize];
+	xenon_nandfs_ReadFileByIndex(petitboot, index);
 
 
 	execute_elf_at(petitboot);
 
-end:
 	printf(" * looping...\n");
 	for(;;);
 

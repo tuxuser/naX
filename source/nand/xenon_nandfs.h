@@ -148,7 +148,7 @@ unsigned short xenon_nandfs_GetMMCMobileBlock(unsigned char* buf, unsigned char 
 unsigned short xenon_nandfs_GetMMCMobileSize(unsigned char* buf, unsigned char mobi);
 bool xenon_nandfs_CheckECC(PAGEDATA* pdata);
 
-unsigned char *xenon_nandfs_ReadFileByIndex(int index);
+int xenon_nandfs_ReadFileByIndex(unsigned char *buf, int index);
 int xenon_nandfs_GetFileSzByIndex(int index);
 int xenon_nandfs_GetIndexByFileName(unsigned char *filename);
 

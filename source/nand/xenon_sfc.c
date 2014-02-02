@@ -17,7 +17,6 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include <malloc.h>
 #include "string.h"
 #include "vsprintf.h"
 #include "xenon_sfc.h"
@@ -313,7 +312,7 @@ int xenon_sfc_ReadSmallBlock(unsigned char* buf, unsigned int block)
 int xenon_sfc_ReadBlockSeparate(unsigned char* user, unsigned char* spare, unsigned int block)
 {
 	int config, wconfig, i;
-	unsigned char* data = (unsigned char *)malloc(sfc.nand.BlockSzPhys);
+	unsigned char data[sfc.nand.BlockSzPhys];
 	
 	if(user && spare)
 	{
@@ -340,7 +339,6 @@ int xenon_sfc_ReadBlockSeparate(unsigned char* user, unsigned char* spare, unsig
 		user += sfc.nand.PageSz;
 		spare += sfc.nand.MetaSz;
 	}
-	free(data);
 	
 	return 0;	
 }
@@ -353,7 +351,7 @@ int xenon_sfc_ReadSmallBlockSeparate(unsigned char* user, unsigned char* spare, 
 	unsigned short PageSzPhys = 0x210;
 	unsigned char MetaSz = 0x10;
 	unsigned char PagesInBlock = 32;
-	unsigned char* data = (unsigned char *)malloc(BlockSzPhys);
+	unsigned char data[BlockSzPhys];
 	
 	if(user && spare)
 	{
@@ -380,24 +378,21 @@ int xenon_sfc_ReadSmallBlockSeparate(unsigned char* user, unsigned char* spare, 
 		user += PageSz;
 		spare += MetaSz;
 	}
-	free(data);
 	
 	return 0;	
 }
 
 int xenon_sfc_ReadBlockUser(unsigned char* buf, unsigned int block)
 {
-	unsigned char* tmp = (unsigned char *)malloc(sfc.nand.MetaSz*sfc.nand.PagesInBlock);
+	unsigned char tmp[sfc.nand.MetaSz*sfc.nand.PagesInBlock];
 	xenon_sfc_ReadBlockSeparate(buf, tmp, block);
-	free(tmp);
 	return 0;
 }
 
 int xenon_sfc_ReadBlockSpare(unsigned char* buf, unsigned int block)
 {
-	unsigned char* tmp = (unsigned char *)malloc(sfc.nand.BlockSz);
+	unsigned char tmp[sfc.nand.BlockSz];
 	xenon_sfc_ReadBlockSeparate(tmp, buf, block);
-	free(tmp);
 	return 0;
 }
 
@@ -405,18 +400,16 @@ int xenon_sfc_ReadSmallBlockUser(unsigned char* buf, unsigned int block)
 {
 	unsigned char PagesInBlock = 32;
 	unsigned char MetaSz = 0x10;
-	unsigned char* tmp = (unsigned char *)malloc(MetaSz*PagesInBlock);
+	unsigned char tmp[MetaSz*PagesInBlock];
 	xenon_sfc_ReadSmallBlockSeparate(buf, tmp, block);
-	free(tmp);
 	return 0;
 }
 
 int xenon_sfc_ReadSmallBlockSpare(unsigned char* buf, unsigned int block)
 {
 	unsigned short BlockSz = 0x4000;
-	unsigned char* tmp = (unsigned char *)malloc(BlockSz);
+	unsigned char tmp[BlockSz];
 	xenon_sfc_ReadSmallBlockSeparate(tmp, buf, block);
-	free(tmp);
 	return 0;
 }
 
@@ -527,7 +520,7 @@ int xenon_sfc_WriteBlocks(unsigned char *buf, unsigned int block, unsigned int b
 	unsigned char* blk_data;
 	unsigned char* data = buf;
 	//int sz = (block_cnt*sfc.nand.BlockSzPhys);
-	unsigned char* blockbuf = (unsigned char *)malloc(sfc.nand.BlockSzPhys);
+	unsigned char blockbuf[sfc.nand.BlockSzPhys];
 	
 	if(((block+block_cnt)*sfc.nand.BlockSzPhys) > sfc.nand.SizeDump)
 	{
@@ -642,8 +635,8 @@ void xenon_sfc_ReadMapData(unsigned char* buf, unsigned int startaddr, unsigned 
 int xenon_sfc_WriteFullFlash(unsigned char* buf)
 {
 	int cur_blk, config, wconfig;
-	unsigned char* data;
-	unsigned char* blockbuf = (unsigned char *)malloc(sfc.nand.BlockSzPhys);
+	unsigned char* data = buf;
+	unsigned char blockbuf[sfc.nand.BlockSzPhys];
 // 	printf("writing flash\n");
 
 	if(sfc.nand.MMC)
@@ -712,7 +705,6 @@ int xenon_sfc_WriteFullFlash(unsigned char* buf)
 		}
 		xenon_sfc_WriteReg(SFCX_CONFIG, config);
 	}
-	free(blockbuf);
 // 	printf("flash write complete\n");
 	return 0;
 }
